@@ -169,6 +169,7 @@
         croppedPreview.src = dataURL;
         croppedPreview.style.display = 'block';
 
+        document.getElementById('step3').style.display = 'block';
         // Step 3 grid
         const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
         const orientation = orientationSlider.value;
