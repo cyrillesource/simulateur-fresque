@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Configurateur de Fresque - Étapes Séquentielles</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js">
+    const step3 = document.getElementById('step3');
+    const fresquePreview = document.getElementById('fresquePreview');
+
+    function showFresquePreview(imageSrc) {
+      const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+      const orientation = orientationSlider.value;
+      const finalTileW = orientation === '1' ? tileH : tileW;
+      const finalTileH = orientation === '1' ? tileW : tileH;
+      const cols = parseInt(colsSlider.value);
+      const rows = parseInt(rowsSlider.value);
+
+      fresquePreview.innerHTML = '';
+      fresquePreview.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+      fresquePreview.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+      fresquePreview.style.aspectRatio = (cols * finalTileW) + ' / ' + (rows * finalTileH);
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const tile = document.createElement('div');
+          tile.className = 'grid-cell';
+          tile.style.backgroundImage = `url(${imageSrc})`;
+          tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+          tile.style.backgroundPosition = `${
+            cols > 1 ? (c / (cols - 1)) * 100 : 0
+          }% ${
+            rows > 1 ? (r / (rows - 1)) * 100 : 0
+          }%`;
+          tile.style.backgroundRepeat = 'no-repeat';
+          fresquePreview.appendChild(tile);
+        }
+      }
+    }
+
+    const step4 = document.getElementById('step4');
+    const wallInput = document.getElementById('wallInput');
+    const wallImage = document.getElementById('wallImage');
+    const fresqueOverlay = document.getElementById('fresqueOverlay');
+
+    wallInput.addEventListener('change', () => {
+      const file = wallInput.files[0];
+      if (!file) return;
+      wallImage.src = URL.createObjectURL(file);
+      wallImage.onload = () => {
+        fresqueOverlay.style.display = 'block';
+        wallImage.style.display = 'block';
+
+        const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+        const orientation = orientationSlider.value;
+        const finalTileW = orientation === '1' ? tileH : tileW;
+        const finalTileH = orientation === '1' ? tileW : tileH;
+        const cols = parseInt(colsSlider.value);
+        const rows = parseInt(rowsSlider.value);
+        const totalWcm = finalTileW * cols;
+        const totalHcm = finalTileH * rows;
+        const scale = 3;
+        const fresqueWpx = totalWcm * scale;
+        const fresqueHpx = totalHcm * scale;
+
+        fresqueOverlay.innerHTML = '';
+        fresqueOverlay.style.width = fresqueWpx + 'px';
+        fresqueOverlay.style.height = fresqueHpx + 'px';
+        fresqueOverlay.style.top = '50%';
+        fresqueOverlay.style.left = '50%';
+        fresqueOverlay.style.transform = 'translate(-50%, -50%)';
+        fresqueOverlay.style.backgroundImage = `url(${croppedPreview.src})`;
+        fresqueOverlay.style.backgroundSize = '100% 100%';
+        fresqueOverlay.style.border = '2px dashed rgba(0,0,0,0.2)';
+        fresqueOverlay.style.boxShadow = '0 0 10px rgba(0,0,0,0.3)';
+      };
+    });
+
+    
+
+document.addEventListener('DOMContentLoaded', function () {
+  const step3 = document.getElementById('step3');
+  const fresquePreview = document.getElementById('fresquePreview');
+
+  function showFresquePreview(imageSrc) {
+    const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+    const orientation = orientationSlider.value;
+    const finalTileW = orientation === '1' ? tileH : tileW;
+    const finalTileH = orientation === '1' ? tileW : tileH;
+    const cols = parseInt(colsSlider.value);
+    const rows = parseInt(rowsSlider.value);
+
+    fresquePreview.innerHTML = '';
+    fresquePreview.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    fresquePreview.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    fresquePreview.style.aspectRatio = (cols * finalTileW) + ' / ' + (rows * finalTileH);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const tile = document.createElement('div');
+        tile.className = 'grid-cell';
+        tile.style.backgroundImage = `url(${imageSrc})`;
+        tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+        tile.style.backgroundPosition = `${
+          cols > 1 ? (c / (cols - 1)) * 100 : 0
+        }% ${
+          rows > 1 ? (r / (rows - 1)) * 100 : 0
+        }%`;
+        tile.style.backgroundRepeat = 'no-repeat';
+        fresquePreview.appendChild(tile);
+      }
+    }
+
+    showWallFresque(imageSrc);
+  }
+
+  const wallInput = document.getElementById('wallInput');
+  const wallImage = document.getElementById('wallImage');
+  const fresqueOverlay = document.getElementById('fresqueOverlay');
+
+  function showWallFresque(imageSrc) {
+    fresqueOverlay.innerHTML = '';
+
+    const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+    const orientation = orientationSlider.value;
+    const finalTileW = orientation === '1' ? tileH : tileW;
+    const finalTileH = orientation === '1' ? tileW : tileH;
+    const cols = parseInt(colsSlider.value);
+    const rows = parseInt(rowsSlider.value);
+
+    const fresqueWpx = finalTileW * cols * 3;
+    const fresqueHpx = finalTileH * rows * 3;
+
+    const fresqueGrid = document.createElement('div');
+    fresqueGrid.style.position = 'absolute';
+    fresqueGrid.style.width = fresqueWpx + 'px';
+    fresqueGrid.style.height = fresqueHpx + 'px';
+    fresqueGrid.style.display = 'grid';
+    fresqueGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    fresqueGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    fresqueGrid.style.top = '100px';
+    fresqueGrid.style.left = '100px';
+    fresqueGrid.style.cursor = 'move';
+    fresqueGrid.style.zIndex = '10';
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const tile = document.createElement('div');
+        tile.className = 'grid-cell';
+        tile.style.backgroundImage = `url(${imageSrc})`;
+        tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+        tile.style.backgroundPosition = `${
+          cols > 1 ? (c / (cols - 1)) * 100 : 0
+        }% ${
+          rows > 1 ? (r / (rows - 1)) * 100 : 0
+        }%`;
+        tile.style.backgroundRepeat = 'no-repeat';
+        fresqueGrid.appendChild(tile);
+      }
+    }
+
+    // Déplacement manuel
+    let isDragging = false, offsetX = 0, offsetY = 0;
+    fresqueGrid.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (isDragging) {
+        fresqueGrid.style.left = (e.clientX - offsetX) + 'px';
+        fresqueGrid.style.top = (e.clientY - offsetY) + 'px';
+      }
+    });
+    document.addEventListener('mouseup', () => isDragging = false);
+
+    fresqueOverlay.appendChild(fresqueGrid);
+    fresqueOverlay.style.display = 'block';
+  }
+
+  wallInput.addEventListener('change', () => {
+    const file = wallInput.files[0];
+    if (!file) return;
+    wallImage.src = URL.createObjectURL(file);
+    wallImage.onload = () => {
+      wallImage.style.display = 'block';
+      if (croppedPreview.src) showWallFresque(croppedPreview.src);
+    };
+  });
+
+  cropButton.addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({imageSmoothingQuality:'high'});
+    const dataURL = canvas.toDataURL();
+    croppedPreview.src = dataURL;
+    croppedPreview.style.display = 'block';
+    showFresquePreview(dataURL);
+  });
+});
+</script>
+  <style>
+    body { font-family: sans-serif; margin:20px; background:#f4f4f4; }
+    h1, h2 { color:#2c3e50; }
+    .section { background:#fff; padding:20px; margin-bottom:20px; border-radius:8px; }
+    label { display:block; margin:8px 0; }
+    input, select { padding:6px; width:100%; box-sizing:border-box; }
+    input[type=range] { width: calc(100% - 20px); }
+    .info { margin-top:10px; font-weight:bold; }
+    .grid-container { display:grid; border:1px solid #333; background:#ecf0f1; margin-top:10px; }
+    .grid-cell { border:1px solid #bbb; }
+    #cropContainer img, #croppedPreview { max-width:100%; display:block; margin:10px 0; }
+    button { padding:10px 15px; background:#3498db; color:#fff; border:none; border-radius:4px; cursor:pointer; }
+    button:disabled { background:#ccc; cursor:not-allowed; }
+  </style>
+</head>
+<body>
+  <h1>Configurateur de Fresque</h1>
+
+  <div class="section" id="step1">
+    <h2>Étape 1 – Configuration de la Grille</h2>
+    <label>Orientation des carreaux:
+      <div style="display:flex; align-items:center;">
+        <span>Paysage</span>
+        <input type="range" id="orientationSlider" min="0" max="1" step="1" value="0" style="flex:1; margin:0 10px;">
+        <span>Portrait</span>
+      </div>
+    </label>
+    <p>Orientation : <span id="orientationLabel">Paysage</span></p>
+    <label>Taille d'un carreau:
+      <select id="tileSizeSelect">
+        <option value="10x10">10 × 10 cm</option>
+        <option value="15x15">15 × 15 cm</option>
+        <option value="20x20" selected>20 × 20 cm</option>
+        <option value="20x25">20 × 25 cm</option>
+        <option value="20x30">20 × 30 cm</option>
+      </select>
+    </label>
+    <label>Nombre de carreaux en largeur:
+      <input type="range" id="colsSlider" min="1" max="20" value="3">
+      <span id="colsCount">3</span>
+    </label>
+    <label>Nombre de carreaux en hauteur:
+      <input type="range" id="rowsSlider" min="1" max="20" value="4">
+      <span id="rowsCount">4</span>
+    </label>
+    <p class="info">Dimensions totales : <span id="totalDimensions">60 × 80 cm</span></p>
+    <p class="info">Nombre total de carreaux : <span id="totalTiles">12</span></p>
+    <h3>Aperçu de la Grille</h3>
+    <div id="gridPreview" class="grid-container" style="width:300px;height:200px;"></div>
+  </div>
+
+  <div class="section" id="step2">
+    <h2>Étape 2 – Upload & Sélection de la Photo</h2>
+    <label for="photoInput">Choisir une image :</label>
+    <input type="file" id="photoInput" accept="image/*">
+    <button id="initCrop" disabled>Initialiser le recadrage</button>
+    <div id="cropSection" style="display:none;">
+      <h3>Recadrage</h3>
+      <div id="cropContainer"><img id="imageToCrop" alt="Image à recadrer"></div>
+      <button id="cropButton">Valider le recadrage</button>
+      <h3>Aperçu du recadrage</h3>
+      <img id="croppedPreview" alt="Aperçu recadré" style="display:none;">
+    </div>
+  </div>
+
+  <script>
+    // Step 1 variables
+    const orientationSlider = document.getElementById('orientationSlider');
+    const orientationLabel  = document.getElementById('orientationLabel');
+    const tileSizeSelect    = document.getElementById('tileSizeSelect');
+    const colsSlider        = document.getElementById('colsSlider');
+    const rowsSlider        = document.getElementById('rowsSlider');
+    const colsCount         = document.getElementById('colsCount');
+    const rowsCount         = document.getElementById('rowsCount');
+    const totalDim          = document.getElementById('totalDimensions');
+    const totalTiles        = document.getElementById('totalTiles');
+    const gridPreview       = document.getElementById('gridPreview');
+
+    function renderGrid() {
+      let [tileW, tileH] = tileSizeSelect.value.split('x').map(v=>parseInt(v));
+      const orientation = orientationSlider.value;
+      if (orientation==='1') [tileW, tileH] = [tileH, tileW];
+      const cols = parseInt(colsSlider.value);
+      const rows = parseInt(rowsSlider.value);
+      colsCount.textContent = cols;
+      rowsCount.textContent = rows;
+      const totalW = tileW * cols;
+      const totalH = tileH * rows;
+      totalDim.textContent = totalW + ' × ' + totalH + ' cm';
+      totalTiles.textContent = cols * rows;
+
+      // Draw preview grid
+      const previewW = 300;
+      const previewH = previewW * (totalH / totalW);
+      gridPreview.style.width  = previewW + 'px';
+      gridPreview.style.height = previewH + 'px';
+      gridPreview.innerHTML = '';
+      gridPreview.style.gridTemplateColumns = `repeat(${cols},1fr)`;
+      gridPreview.style.gridTemplateRows    = `repeat(${rows},1fr)`;
+      for (let i = 0; i < cols*rows; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'grid-cell';
+        gridPreview.appendChild(cell);
+      }
+    }
+
+    [orientationSlider, tileSizeSelect, colsSlider, rowsSlider].forEach(el => {
+      el.addEventListener('input', () => {
+        orientationLabel.textContent = orientationSlider.value==='1'?'Portrait':'Paysage';
+        renderGrid();
+      });
+    });
+    
+document.addEventListener('DOMContentLoaded', function () {
+  const step3 = document.getElementById('step3');
+  const fresquePreview = document.getElementById('fresquePreview');
+
+  function showFresquePreview(imageSrc) {
+    const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+    const orientation = orientationSlider.value;
+    const finalTileW = orientation === '1' ? tileH : tileW;
+    const finalTileH = orientation === '1' ? tileW : tileH;
+    const cols = parseInt(colsSlider.value);
+    const rows = parseInt(rowsSlider.value);
+
+    fresquePreview.innerHTML = '';
+    fresquePreview.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    fresquePreview.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    fresquePreview.style.aspectRatio = (cols * finalTileW) + ' / ' + (rows * finalTileH);
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const tile = document.createElement('div');
+        tile.className = 'grid-cell';
+        tile.style.backgroundImage = `url(${imageSrc})`;
+        tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+        tile.style.backgroundPosition = `${
+          cols > 1 ? (c / (cols - 1)) * 100 : 0
+        }% ${
+          rows > 1 ? (r / (rows - 1)) * 100 : 0
+        }%`;
+        tile.style.backgroundRepeat = 'no-repeat';
+        fresquePreview.appendChild(tile);
+      }
+    }
+
+    showWallFresque(imageSrc);
+  }
+
+  const wallInput = document.getElementById('wallInput');
+  const wallImage = document.getElementById('wallImage');
+  const fresqueOverlay = document.getElementById('fresqueOverlay');
+
+  function showWallFresque(imageSrc) {
+    fresqueOverlay.innerHTML = '';
+
+    const [tileW, tileH] = tileSizeSelect.value.split('x').map(v => parseInt(v));
+    const orientation = orientationSlider.value;
+    const finalTileW = orientation === '1' ? tileH : tileW;
+    const finalTileH = orientation === '1' ? tileW : tileH;
+    const cols = parseInt(colsSlider.value);
+    const rows = parseInt(rowsSlider.value);
+
+    const fresqueWpx = finalTileW * cols * 3;
+    const fresqueHpx = finalTileH * rows * 3;
+
+    const fresqueGrid = document.createElement('div');
+    fresqueGrid.style.position = 'absolute';
+    fresqueGrid.style.width = fresqueWpx + 'px';
+    fresqueGrid.style.height = fresqueHpx + 'px';
+    fresqueGrid.style.display = 'grid';
+    fresqueGrid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
+    fresqueGrid.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+    fresqueGrid.style.top = '100px';
+    fresqueGrid.style.left = '100px';
+    fresqueGrid.style.cursor = 'move';
+    fresqueGrid.style.zIndex = '10';
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const tile = document.createElement('div');
+        tile.className = 'grid-cell';
+        tile.style.backgroundImage = `url(${imageSrc})`;
+        tile.style.backgroundSize = `${cols * 100}% ${rows * 100}%`;
+        tile.style.backgroundPosition = `${
+          cols > 1 ? (c / (cols - 1)) * 100 : 0
+        }% ${
+          rows > 1 ? (r / (rows - 1)) * 100 : 0
+        }%`;
+        tile.style.backgroundRepeat = 'no-repeat';
+        fresqueGrid.appendChild(tile);
+      }
+    }
+
+    // Déplacement manuel
+    let isDragging = false, offsetX = 0, offsetY = 0;
+    fresqueGrid.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      offsetX = e.offsetX;
+      offsetY = e.offsetY;
+    });
+    document.addEventListener('mousemove', function(e) {
+      if (isDragging) {
+        fresqueGrid.style.left = (e.clientX - offsetX) + 'px';
+        fresqueGrid.style.top = (e.clientY - offsetY) + 'px';
+      }
+    });
+    document.addEventListener('mouseup', () => isDragging = false);
+
+    fresqueOverlay.appendChild(fresqueGrid);
+    fresqueOverlay.style.display = 'block';
+  }
+
+  wallInput.addEventListener('change', () => {
+    const file = wallInput.files[0];
+    if (!file) return;
+    wallImage.src = URL.createObjectURL(file);
+    wallImage.onload = () => {
+      wallImage.style.display = 'block';
+      if (croppedPreview.src) showWallFresque(croppedPreview.src);
+    };
+  });
+
+  cropButton.addEventListener('click', () => {
+    const canvas = cropper.getCroppedCanvas({imageSmoothingQuality:'high'});
+    const dataURL = canvas.toDataURL();
+    croppedPreview.src = dataURL;
+    croppedPreview.style.display = 'block';
+    showFresquePreview(dataURL);
+  });
+});
+</script>
+
+  <div class="section" id="step3">
+    <h2>Étape 3 – Visualisation de la Fresque</h2>
+    <div id="fresquePreview" class="grid-container" style="width:300px; height:auto;"></div>
+  </div>
+
+  <div class="section" id="step4">
+    <h2>Étape 4 – Simulation sur un mur réel</h2>
+    <label for="wallInput">Uploader une photo de votre mur :</label>
+    <input type="file" id="wallInput" accept="image/*">
+    <div id="wallContainer" style="position:relative; width:100%; max-width:600px; margin-top:15px;">
+      <img id="wallImage" alt="Mur utilisateur" style="width:100%; display:none;">
+      <div id="fresqueOverlay" style="position:absolute; top:0; left:0; display:none;"></div>
+    </div>
+  </div>
+</body>
+
+</html>
